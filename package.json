@@ -1,10 +1,10 @@
 {
   "name": "emby-proxy-worker",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "scripts": {
-    "dev": "wrangler pages dev -- npx http-server public",
-    "deploy": "wrangler pages deploy",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
     "test": "vitest run",
     "test:watch": "vitest"
   },
