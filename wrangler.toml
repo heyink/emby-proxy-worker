@@ -2,6 +2,9 @@ name = "emby-proxy-worker"
 compatibility_date = "2024-12-01"
 main = "src/main.ts"
 
+[observability]
+enabled = true
+
 [[durable_objects.bindings]]
 name = "WEBSOCKET_PROXY"
 class_name = "WebSocketProxy"
