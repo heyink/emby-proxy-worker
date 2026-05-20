@@ -47,7 +47,7 @@
 ### 1. 前置要求
 
 - 一个 Cloudflare 账号
-- Node.js 18+
+- Node.js 22+
 
 ### 2. 克隆并安装
 
@@ -65,17 +65,36 @@ npm run dev
 
 默认监听 `http://localhost:8788`。
 
+测试：
+
+```bash
+# 健康检查
+curl http://localhost:8788/health
+
+# 根路径应返回 400
+curl http://localhost:8788/
+
+# 代理到外部站点
+curl http://localhost:8788/https/httpbin.org/443/get
+```
+
 ### 4. 部署到 Cloudflare
 
-首次部署前，先登录 wrangler：
+#### 方式一：GitHub Actions 自动部署（推荐）
+
+Fork 或推送本仓库到 GitHub 后：
+
+1. 在 [Cloudflare Dashboard](https://dash.cloudflare.com/profile/api-tokens) 创建 API Token，选择 **Edit Cloudflare Workers** 模板
+2. 在 Cloudflare Dashboard 首页右侧复制你的 **Account ID**
+3. 在 GitHub 仓库 → **Settings** → **Secrets and variables** → **Actions** 中添加两个 Secret：
+   - `CLOUDFLARE_API_TOKEN`：第 1 步创建的 Token
+   - `CLOUDFLARE_ACCOUNT_ID`：第 2 步复制的 ID
+4. 推送到 `main` 分支即可自动部署
+
+#### 方式二：手动部署
 
 ```bash
 npx wrangler login
-```
-
-然后部署：
-
-```bash
 npm run deploy
 ```
 
