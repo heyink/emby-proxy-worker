@@ -11,6 +11,11 @@ const STRIP_REQUEST_HEADERS = [
   'X-Forwarded-Prefix',
   'Forwarded',
   'Via',
+  'CF-Connecting-IP',
+  'CF-IPCountry',
+  'CF-Ray',
+  'CF-Visitor',
+  'CF-Worker',
 ];
 
 const STRIP_RESPONSE_HEADERS = ['Server', 'X-Powered-By'];
