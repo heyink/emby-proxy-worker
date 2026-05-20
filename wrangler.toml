@@ -1,0 +1,10 @@
+name = "emby-proxy-worker"
+compatibility_date = "2024-12-01"
+
+[[durable_objects.bindings]]
+name = "WEBSOCKET_PROXY"
+class_name = "WebSocketProxy"
+
+[[migrations]]
+tag = "v1"
+new_unique_class = "WebSocketProxy"
