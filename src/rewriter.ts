@@ -35,8 +35,14 @@ export function isURLTerminator(c: string): boolean {
   return '"\'<> \t\n\r`(){}[]\\|^'.includes(c);
 }
 
-export function rewriteBody(body: string, baseURL: string): string {
-  if (!body.includes('http')) return body;
+export interface RewriteEntry {
+  original: string;
+  rewritten: string;
+}
+
+export function rewriteBody(body: string, baseURL: string): { result: string; rewrites: RewriteEntry[] } {
+  const rewrites: RewriteEntry[] = [];
+  if (!body.includes('http')) return { result: body, rewrites };
 
   let out = '';
   let i = 0;
@@ -74,11 +80,15 @@ export function rewriteBody(body: string, baseURL: string): string {
     }
 
     const raw = body.slice(urlStart, urlEnd);
-    out += rewriteURLFast(raw, schemeLen, baseURL);
+    const rewritten = rewriteURLFast(raw, schemeLen, baseURL);
+    if (raw !== rewritten) {
+      rewrites.push({ original: raw, rewritten });
+    }
+    out += rewritten;
     i = urlEnd;
   }
 
-  return out;
+  return { result: out, rewrites };
 }
 
 export function rewriteSingleURL(rawURL: string, baseURL: string): string {

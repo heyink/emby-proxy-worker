@@ -45,10 +45,13 @@ export async function serveHTTPProxy(request: Request, target: Target): Promise<
     responseAllowsBody(request.method, resp.status)
   ) {
     const body = await resp.text();
-    const rewritten = rewriteBody(body, baseURL);
+    const { result, rewrites } = rewriteBody(body, baseURL);
     const elapsed = Date.now() - start;
-    console.log(`[API] ${resp.status} ${request.method} ${target.domain}${targetRequestPath(target)} | rewritten | ${elapsed}ms`);
-    return new Response(rewritten, {
+    console.log(`[API] ${resp.status} ${request.method} ${target.domain}${targetRequestPath(target)} | rewritten | ${rewrites.length} URLs | ${elapsed}ms`);
+    for (const r of rewrites) {
+      console.log(`[REWRITE] ${r.original} -> ${r.rewritten}`);
+    }
+    return new Response(result, {
       status: resp.status,
       headers: respHeaders,
     });

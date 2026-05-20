@@ -7,6 +7,7 @@ import {
   rewriteSingleURL,
   isURLTerminator,
 } from './rewriter';
+import type { RewriteEntry } from './rewriter';
 import type { Target } from './types';
 
 function t(path: string): Target {
@@ -116,48 +117,61 @@ describe('rewriteBody', () => {
   it('rewrites JSON body with absolute URLs', () => {
     const body = '{"api":"https://emby.example.com/Items/1","fallback":"http://cdn.example.com:8096/video.mp4","relative":"/Items/2"}';
     const want = '{"api":"https://proxy.example.com/https/emby.example.com/443/Items/1","fallback":"https://proxy.example.com/http/cdn.example.com/8096/video.mp4","relative":"/Items/2"}';
-    expect(rewriteBody(body, base)).toBe(want);
+    const { result, rewrites } = rewriteBody(body, base);
+    expect(result).toBe(want);
+    expect(rewrites).toHaveLength(2);
+    expect(rewrites[0]).toEqual({ original: 'https://emby.example.com/Items/1', rewritten: 'https://proxy.example.com/https/emby.example.com/443/Items/1' });
   });
 
   it('rewrites Emby PlaybackInfo MediaSources', () => {
     const body = '{"MediaSources":[{"Id":"ms1","Path":"https://stream-cdn.example.com/videos/123/master.m3u8?MediaSourceId=ms1","TranscodingUrl":"http://transcode-node.example.com:8096/Videos/123/master.m3u8?DeviceId=device-1"}]}';
-    const result = rewriteBody(body, base);
+    const { result, rewrites } = rewriteBody(body, base);
     expect(result).toContain('https://proxy.example.com/https/stream-cdn.example.com/443/videos/123/master.m3u8?MediaSourceId=ms1');
     expect(result).toContain('https://proxy.example.com/http/transcode-node.example.com/8096/Videos/123/master.m3u8?DeviceId=device-1');
+    expect(rewrites).toHaveLength(2);
   });
 
   it('returns unchanged body without URLs', () => {
     const body = '{"relative":"/Items/2"}';
-    expect(rewriteBody(body, base)).toBe(body);
+    const { result, rewrites } = rewriteBody(body, base);
+    expect(result).toBe(body);
+    expect(rewrites).toHaveLength(0);
   });
 
   it('handles multiple URLs from different hosts', () => {
     const body = 'https://a.example.com/x https://b.example.com/y';
     const want = 'https://proxy.example.com/https/a.example.com/443/x https://proxy.example.com/https/b.example.com/443/y';
-    expect(rewriteBody(body, base)).toBe(want);
+    const { result, rewrites } = rewriteBody(body, base);
+    expect(result).toBe(want);
+    expect(rewrites).toHaveLength(2);
   });
 
   it('preserves text before and after URL', () => {
     const body = 'prefix https://example.com/a suffix';
     const want = 'prefix https://proxy.example.com/https/example.com/443/a suffix';
-    expect(rewriteBody(body, base)).toBe(want);
+    const { result } = rewriteBody(body, base);
+    expect(result).toBe(want);
   });
 
   it('respects JSON string terminators', () => {
     const body = '{"url":"https://example.com/a"}';
     const want = '{"url":"https://proxy.example.com/https/example.com/443/a"}';
-    expect(rewriteBody(body, base)).toBe(want);
+    const { result } = rewriteBody(body, base);
+    expect(result).toBe(want);
   });
 
   it('returns empty string unchanged', () => {
-    expect(rewriteBody('', base)).toBe('');
+    const { result, rewrites } = rewriteBody('', base);
+    expect(result).toBe('');
+    expect(rewrites).toHaveLength(0);
   });
 
   it('handles baseURL with forwarded prefix', () => {
     const body = '{"url":"https://example.com/a"}';
     const prefixedBase = 'https://proxy.example.com/custom-prefix';
     const want = '{"url":"https://proxy.example.com/custom-prefix/https/example.com/443/a"}';
-    expect(rewriteBody(body, prefixedBase)).toBe(want);
+    const { result } = rewriteBody(body, prefixedBase);
+    expect(result).toBe(want);
   });
 });
 
