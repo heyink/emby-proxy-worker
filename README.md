@@ -30,6 +30,7 @@
 - 移除响应头中的 `Server`、`X-Powered-By`
 - 对 Emby `PlaybackInfo` 和 `Sessions/Playing/Progress` 接口做响应体绝对 URL 改写
 - 支持前置反代的 `X-Forwarded-Prefix`
+- 可选的上游域名白名单（支持 `*.domain` 通配符），防止被当开放代理滥用
 
 ## 与 Go 版本的区别
 
@@ -38,7 +39,7 @@
 | 运行环境 | 自建服务器 / Docker | Cloudflare Workers（边缘计算） |
 | 服务器成本 | 需要一台 VPS | Cloudflare Free 计划即可 |
 | WebSocket | Hijack + 双向流 | Durable Objects |
-| SSRF 防护 | DNS 解析后检查 IP | 不做 |
+| SSRF 防护 | DNS 解析后检查 IP | 域名白名单 |
 | 出站代理 | HTTP_PROXY / SOCKS5 | 不支持 |
 | 部署方式 | Docker Compose | `wrangler deploy` |
 
@@ -170,6 +171,40 @@ proxy_set_header X-Forwarded-Prefix /custom;
 - API 请求：`https://proxy.example.com/http/public-emby.example.net/8096/emby/Items?api_key=xxxx`
 - Web 页面：`https://proxy.example.com/http/public-emby.example.net/8096/web/index.html`
 
+## 上游域名白名单
+
+默认不限制上游域名，任何人都可以通过你的 Worker 代理到任意服务器。为了防止被滥用，可以配置 `ALLOWED_DOMAINS` 环境变量来限制允许代理的上游域名。
+
+### 配置方式
+
+在 Cloudflare Dashboard → Workers → 你的 Worker → Settings → Variables and Secrets 中添加：
+
+```
+ALLOWED_DOMAINS = emby.example.com,*.example.net
+```
+
+### 匹配规则
+
+- **精确匹配**：`emby.example.com` 只匹配自身
+- **通配符匹配**：`*.example.net` 匹配所有子域名（`sub.example.net`、`a.b.example.net`）
+- 通配符只支持 `*.` 前缀，不支持 `foo*.com`、`example.*` 等形式
+- 大小写不敏感
+- 不设置或留空 = 不限制（向后兼容）
+
+### 示例
+
+```
+# 只允许一个域名
+ALLOWED_DOMAINS = emby.example.com
+
+# 允许多个域名和通配符
+ALLOWED_DOMAINS = emby.example.com,*.example.net,emby2.example.org
+
+# 不设置 = 允许所有域名（默认行为）
+```
+
+被拒绝的请求会返回 `403 Forbidden`，并在日志中记录 `[AUTH] domain not allowed: <domain>`。
+
 ## 健康检查
 
 ```bash
@@ -199,6 +234,7 @@ src/
 ├── target.ts      # URL 路径解析、目标构建
 ├── headers.ts     # 请求/响应头处理
 ├── rewriter.ts    # 响应体绝对 URL 改写
+├── allowlist.ts   # 上游域名白名单
 └── types.ts       # 类型定义
 ```
 
