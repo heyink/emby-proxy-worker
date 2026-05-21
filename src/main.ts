@@ -1,6 +1,7 @@
 import { parseTarget } from './target';
 import { serveHTTPProxy } from './proxy';
 import { WebSocketProxy } from './websocket';
+import { parseAllowlist, isDomainAllowed } from './allowlist';
 import type { Env } from './types';
 
 export { WebSocketProxy };
@@ -18,6 +19,13 @@ export default {
     const result = parseTarget(url.pathname, url.search.slice(1));
     if (!result.ok) {
       return new Response(result.error, { status: 400 });
+    }
+
+    // Domain allowlist check
+    const allowlist = parseAllowlist(env.ALLOWED_DOMAINS);
+    if (!isDomainAllowed(result.target.domain, allowlist)) {
+      console.log(`[AUTH] domain not allowed: ${result.target.domain}`);
+      return new Response('domain not allowed', { status: 403 });
     }
 
     // WebSocket upgrade
