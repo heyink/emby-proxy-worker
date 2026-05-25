@@ -5,7 +5,8 @@ import { shouldRewriteEmbyPath, shouldRewriteEmbyResponse, rewriteBody } from '.
 
 export async function serveHTTPProxy(request: Request, target: Target, env: Env): Promise<Response> {
   const start = Date.now();
-  const baseURL = env.REWRITE_BASE_URL || inferBaseURL(request);
+  const baseURL = env.REWRITE_BASE_URL
+    || (env.SECRET_PREFIX ? `${inferBaseURL(request)}/${env.SECRET_PREFIX}` : inferBaseURL(request));
   const targetURL = buildTargetURL(target);
 
   const outgoing = new Request(targetURL, {

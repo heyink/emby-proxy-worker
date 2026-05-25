@@ -16,7 +16,17 @@ export default {
     }
 
     // Parse target
-    const result = parseTarget(url.pathname, url.search.slice(1));
+    let pathname = url.pathname;
+    if (env.SECRET_PREFIX) {
+      const prefix = '/' + env.SECRET_PREFIX;
+      if (!pathname.startsWith(prefix + '/')) {
+        console.log(`[AUTH] missing or invalid prefix`);
+        return new Response('forbidden', { status: 403 });
+      }
+      pathname = pathname.slice(prefix.length) || '/';
+    }
+
+    const result = parseTarget(pathname, url.search.slice(1));
     if (!result.ok) {
       return new Response(result.error, { status: 400 });
     }
