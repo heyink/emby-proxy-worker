@@ -47,6 +47,6 @@ export default {
     }
 
     // HTTP proxy
-    return serveHTTPProxy(request, result.target);
+    return serveHTTPProxy(request, result.target, env);
   },
 };

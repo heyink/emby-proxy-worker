@@ -1,11 +1,11 @@
-import type { Target } from './types';
+import type { Env, Target } from './types';
 import { buildTargetURL, inferBaseURL, targetRequestPath } from './target';
 import { rewriteProxySensitiveRequestHeaders, rewriteResponseHeaders, copyResponseHeaders } from './headers';
 import { shouldRewriteEmbyPath, shouldRewriteEmbyResponse, rewriteBody } from './rewriter';
 
-export async function serveHTTPProxy(request: Request, target: Target): Promise<Response> {
+export async function serveHTTPProxy(request: Request, target: Target, env: Env): Promise<Response> {
   const start = Date.now();
-  const baseURL = inferBaseURL(request);
+  const baseURL = env.REWRITE_BASE_URL || inferBaseURL(request);
   const targetURL = buildTargetURL(target);
 
   const outgoing = new Request(targetURL, {

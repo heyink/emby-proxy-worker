@@ -9,4 +9,5 @@ export interface Target {
 export interface Env {
   WEBSOCKET_PROXY: DurableObjectNamespace;
   ALLOWED_DOMAINS?: string;
+  REWRITE_BASE_URL?: string;
 }
