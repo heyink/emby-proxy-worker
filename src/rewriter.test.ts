@@ -21,12 +21,6 @@ describe('shouldRewriteEmbyPath', () => {
   it('matches /emby/ prefix PlaybackInfo', () => {
     expect(shouldRewriteEmbyPath(t('emby/Items/123/PlaybackInfo'))).toBe(true);
   });
-  it('matches Sessions/Playing/Progress', () => {
-    expect(shouldRewriteEmbyPath(t('emby/Sessions/Playing/Progress'))).toBe(true);
-  });
-  it('matches Sessions/Playing/Progress without emby prefix', () => {
-    expect(shouldRewriteEmbyPath(t('Sessions/Playing/Progress'))).toBe(true);
-  });
   it('does not match Items list', () => {
     expect(shouldRewriteEmbyPath(t('Items'))).toBe(false);
   });

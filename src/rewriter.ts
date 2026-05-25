@@ -15,9 +15,7 @@ const REWRITABLE_TYPES = [
 export function shouldRewriteEmbyPath(target: Target): boolean {
   const path = targetRequestPath(target).toLowerCase();
   return (
-    ((path.startsWith('/emby/items/') || path.startsWith('/items/')) && path.endsWith('/playbackinfo')) ||
-    path === '/emby/sessions/playing/progress' ||
-    path === '/sessions/playing/progress'
+    (path.startsWith('/emby/items/') || path.startsWith('/items/')) && path.endsWith('/playbackinfo')
   );
 }
 
