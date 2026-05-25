@@ -9,9 +9,10 @@ export async function serveHTTPProxy(request: Request, target: Target, env: Env)
     || (env.SECRET_PREFIX ? `${inferBaseURL(request)}/${env.SECRET_PREFIX}` : inferBaseURL(request));
   const targetURL = buildTargetURL(target);
 
+  const methodHasBody = !['GET', 'HEAD'].includes(request.method.toUpperCase());
   const outgoing = new Request(targetURL, {
     method: request.method,
-    body: request.body,
+    body: methodHasBody ? request.body : undefined,
     redirect: 'manual',
   });
 
