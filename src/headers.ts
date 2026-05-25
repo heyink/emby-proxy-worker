@@ -1,6 +1,6 @@
 import type { Target } from './types';
 import { buildProxyURL, unproxyURL } from './target';
-import { rewriteSingleURL } from './rewriter';
+import { rewriteSingleURL, type RewriteEntry } from './rewriter';
 
 const STRIP_REQUEST_HEADERS = [
   'X-Real-Ip',
@@ -36,15 +36,25 @@ export function rewriteProxySensitiveRequestHeaders(headers: Headers, forwardedP
   }
 }
 
-export function rewriteResponseHeaders(headers: Headers, target: Target, baseURL: string): void {
+export function rewriteResponseHeaders(headers: Headers, target: Target, baseURL: string): RewriteEntry[] {
+  const rewrites: RewriteEntry[] = [];
   const loc = headers.get('Location');
   if (loc) {
-    headers.set('Location', rewriteHeaderURL(loc, target, baseURL));
+    const rewritten = rewriteHeaderURL(loc, target, baseURL);
+    headers.set('Location', rewritten);
+    if (rewritten !== loc) {
+      rewrites.push({ original: loc, rewritten });
+    }
   }
   const cl = headers.get('Content-Location');
   if (cl) {
-    headers.set('Content-Location', rewriteHeaderURL(cl, target, baseURL));
+    const rewritten = rewriteHeaderURL(cl, target, baseURL);
+    headers.set('Content-Location', rewritten);
+    if (rewritten !== cl) {
+      rewrites.push({ original: cl, rewritten });
+    }
   }
+  return rewrites;
 }
 
 function rewriteHeaderURL(rawURL: string, target: Target, baseURL: string): string {
